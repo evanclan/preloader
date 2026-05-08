@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaeru Ryugaku — かえる留学</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --video-size: 250px;
+            --logo-name-height: 180px;
+            --reveal-gap: 24px;
+            --reveal-duration: 1.2s;
+            --hero-frog-width: 120px;
+        }
+
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #333;
+            overflow: hidden;
+        }
+
+        body.content-loaded {
+            overflow: auto;
+        }
+
+        /* ===================== PRELOADER ===================== */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 1s ease-out;
+        }
+
+        #preloader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .preloader-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Video Container */
+        .video-wrap {
+            width: var(--video-size);
+            height: var(--video-size);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #logo-video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* ---- Frog top decoration (dots above frog) ---- */
+        #frog-top-decor {
+            position: absolute;
+            bottom: 48%;
+            left: 60%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: auto;
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                opacity 0.5s ease;
+        }
+
+        #frog-top-decor.show {
+            opacity: 1;
+        }
+
+        /* ---- Name Reveal using clip-path ---- */
+        .name-reveal {
+            display: flex;
+            align-items: center;
+            margin-right: 0;
+            clip-path: inset(0 0 0 100%);
+            opacity: 0;
+            transition:
+                clip-path var(--reveal-duration) cubic-bezier(0.65, 0, 0.35, 1),
+                opacity 0.5s ease,
+                margin-right 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .name-reveal.show {
+            clip-path: inset(0 0 0 0%);
+            opacity: 1;
+            margin-right: -70px;
+        }
+
+        #logo-name-img {
+            height: var(--logo-name-height);
+            width: auto;
+            display: block;
+        }
+
+        /* ===================== FLYING FROG (transition element) ===================== */
+        #flying-frog {
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none;
+            will-change: transform, width, height, top, left;
+            transition: none;
+        }
+
+        #flying-frog img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        #flying-frog.animate-to-hero {
+            transition:
+                top 1.4s cubic-bezier(0.34, 1.2, 0.64, 1),
+                left 1.4s cubic-bezier(0.34, 1.2, 0.64, 1),
+                width 1.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+
+        /* ===================== HEADER ===================== */
+        .site-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.96);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 0;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 40px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .header-logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .header-logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .header-logo-text .sub {
+            font-size: 0.6rem;
+            color: #666;
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .header-logo-text .main {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1a1a1a;
+        }
+
+        .header-cta-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-cta-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: 2px solid transparent;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .header-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-green {
+            background: #ffffff;
+            color: #2ea668;
+            border-color: #2ea668;
+        }
+
+        .cta-orange {
+            background: #ffffff;
+            color: #d4912a;
+            border-color: #d4912a;
+        }
+
+        .cta-yellow {
+            background: #f5c842;
+            color: #fff;
+            border-color: #f5c842;
+        }
+
+        /* Wave divider under header-top */
+        .header-wave {
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(90deg,
+                    transparent 0,
+                    transparent 6px,
+                    #333 6px,
+                    #333 7px);
+            opacity: 0.12;
+        }
+
+        /* Navigation bar */
+        .header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            padding: 0 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .header-nav a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 22px;
+            text-decoration: none;
+            transition: color 0.25s ease, background 0.25s ease;
+            border-radius: 0;
+            line-height: 1.3;
+        }
+
+        .header-nav a:hover {
+            background: rgba(46, 166, 104, 0.06);
+        }
+
+        .header-nav a .nav-en {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #2ea668;
+            letter-spacing: 0.04em;
+        }
+
+        .header-nav a .nav-jp {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* ===================== HERO SECTION ===================== */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            padding: 160px 50px 60px;
+            background: #faf8f4;
+            overflow: hidden;
+        }
+
+        .hero-heading {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-heading h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #1a1a1a;
+            line-height: 1.3;
+            letter-spacing: 0.02em;
+        }
+
+        .hero-heading h1 .highlight {
+            position: relative;
+            display: inline;
+        }
+
+        .hero-heading h1 .highlight::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: -4px;
+            right: -4px;
+            height: 12px;
+            background: rgba(46, 166, 104, 0.18);
+            border-radius: 4px;
+            z-index: -1;
+        }
+
+        /* ===================== PHOTO COLLAGE ===================== */
+        .photo-collage {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            height: 520px;
+        }
+
+        .blob-photo {
+            position: absolute;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            transition: transform 0.4s ease;
+        }
+
+        .blob-photo:hover {
+            transform: scale(1.03);
+        }
+
+        .blob-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Organic blob shapes using border-radius */
+        .blob-1 {
+            width: 260px;
+            height: 320px;
+            top: 10px;
+            left: 0;
+            border-radius: 42% 58% 62% 38% / 44% 52% 48% 56%;
+        }
+
+        .blob-2 {
+            width: 400px;
+            height: 300px;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-radius: 52% 48% 44% 56% / 38% 62% 38% 62%;
+            z-index: 2;
+        }
+
+        .blob-2:hover {
+            transform: translateX(-50%) scale(1.03);
+        }
+
+        .blob-3 {
+            width: 280px;
+            height: 340px;
+            top: 0;
+            right: 0;
+            border-radius: 38% 62% 52% 48% / 56% 44% 56% 44%;
+        }
+
+        .blob-4 {
+            width: 240px;
+            height: 240px;
+            bottom: 0;
+            left: 60px;
+            border-radius: 56% 44% 38% 62% / 48% 52% 48% 52%;
+        }
+
+        .blob-5 {
+            width: 280px;
+            height: 240px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-30%);
+            border-radius: 48% 52% 56% 44% / 44% 56% 44% 56%;
+            z-index: 1;
+        }
+
+        .blob-5:hover {
+            transform: translateX(-30%) scale(1.03);
+        }
+
+        /* ===================== DOODLES ===================== */
+        .doodle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 5;
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive;
+            color: #555;
+            font-size: 0.95rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .doodle-havefun {
+            top: 20px;
+            left: 180px;
+            transform: rotate(-12deg);
+            font-size: 1rem;
+            color: #2ea668;
+        }
+
+        .doodle-youcandoit {
+            bottom: 110px;
+            left: 52%;
+            transform: rotate(3deg);
+            font-size: 0.95rem;
+            color: #d4912a;
+        }
+
+        .doodle-leaf1 {
+            top: 60px;
+            left: 140px;
+            font-size: 1.4rem;
+            animation: float-doodle 4s ease-in-out infinite;
+        }
+
+        .doodle-leaf2 {
+            bottom: 80px;
+            left: 30%;
+            font-size: 1.2rem;
+            animation: float-doodle 5s ease-in-out infinite 1s;
+        }
+
+        .doodle-butterfly1 {
+            top: 40px;
+            right: 140px;
+            font-size: 1.3rem;
+            animation: float-doodle 3.5s ease-in-out infinite 0.5s;
+        }
+
+        .doodle-butterfly2 {
+            bottom: 130px;
+            right: 80px;
+            font-size: 1.1rem;
+            animation: float-doodle 4.5s ease-in-out infinite 2s;
+        }
+
+        .doodle-clover {
+            bottom: 180px;
+            left: 240px;
+            font-size: 1.3rem;
+            animation: float-doodle 5s ease-in-out infinite 0.8s;
+        }
+
+        .doodle-plane {
+            top: 80px;
+            right: 30%;
+            font-size: 1.4rem;
+            animation: float-doodle 6s ease-in-out infinite 1.5s;
+        }
+
+        @keyframes float-doodle {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* ===================== SPEECH BUBBLE ===================== */
+        .speech-bubble {
+            position: absolute;
+            bottom: 140px;
+            right: 20px;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .speech-bubble-inner {
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 20px;
+            padding: 10px 18px;
+            font-family: 'Comic Sans MS', 'Chalkboard', cursive;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .speech-bubble-inner::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            right: 30px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 14px solid #333;
+        }
+
+        .speech-bubble-inner::before {
+            content: '';
+            position: absolute;
+            bottom: -9px;
+            right: 31px;
+            width: 0;
+            height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-top: 12px solid #fff;
+            z-index: 1;
+        }
+
+        /* Frog + speech bubble group in hero */
+        .hero-frog-group {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            z-index: 7;
+        }
+
+        #hero-frog {
+            width: var(--hero-frog-width);
+            height: auto;
+            display: block;
+            opacity: 0;
+            /* starts hidden, becomes visible after flying frog arrives */
+        }
+
+        #hero-frog.visible {
+            opacity: 1;
+        }
+
+        /* "Why not study abroad?" speech bubble above frog */
+        #hero-speech-bubble {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 180px;
+            height: auto;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        #hero-speech-bubble.visible {
+            opacity: 1;
+        }
+
+        /* ===================== MAIN CONTENT ===================== */
+        #main-content {
+            width: 100%;
+            opacity: 0;
+            transform: scale(1.02);
+            transition: opacity 1.4s ease, transform 1.4s ease;
+        }
+
+        body.content-loaded #main-content {
+            opacity: 1;
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============ PRELOADER ============ -->
+    <div id="preloader">
+        <div class="preloader-content">
+            <div class="name-reveal" id="name-reveal">
+                <img id="logo-name-img" src="new/logoname.png" alt="Company Name">
+            </div>
+
+            <div class="video-wrap">
+                <img id="frog-top-decor" src="top-of-the-frog-frame.png" alt="">
+                <video id="logo-video" muted playsinline preload="auto">
+                    <!-- WebM VP9 with alpha — works in Chrome, Firefox, Edge -->
+                    <source src="preloader.webm" type="video/webm">
+                    <!-- MOV with alpha — works in Safari -->
+                    <source src="preloader.mov" type="video/quicktime">
+                </video>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ FLYING FROG (used for transition animation) ============ -->
+    <div id="flying-frog" style="display:none;">
+        <img src="new/frog-last-frame.png" alt="">
+    </div>
+
+    <!-- ============ MAIN CONTENT ============ -->
+    <div id="main-content">
+
+        <!-- Header -->
+        <header class="site-header">
+            <div class="header-top">
+                <a href="#" class="header-logo">
+                    <img src="new/logoname.png" alt="かえる留学" style="height:50px;">
+                </a>
+                <div class="header-cta-group">
+                    <a href="#" class="header-cta-btn cta-green">🐸 カウンセリング予約</a>
+                    <a href="#" class="header-cta-btn cta-orange">✉️ お問い合わせ</a>
+                    <a href="#" class="header-cta-btn cta-yellow">📋 資料請求</a>
+                </div>
+            </div>
+            <div class="header-wave"></div>
+            <nav class="header-nav">
+                <a href="#">
+                    <span class="nav-en">Why us</span>
+                    <span class="nav-jp">選ばれる理由</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">Programs</span>
+                    <span class="nav-jp">留学を探す</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">Process</span>
+                    <span class="nav-jp">サービスの流れ</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">Reviews</span>
+                    <span class="nav-jp">留学体験談</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">Blog</span>
+                    <span class="nav-jp">留学ブログ</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">About us</span>
+                    <span class="nav-jp">かえる留学とは</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">For Parents</span>
+                    <span class="nav-jp">親御様へ</span>
+                </a>
+                <a href="#">
+                    <span class="nav-en">FAQ</span>
+                    <span class="nav-jp">よくある質問</span>
+                </a>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero-section" id="hero-section">
+
+            <!-- Hero Heading -->
+            <div class="hero-heading">
+                <h1>あなたを『<span class="highlight">かえる</span>』留学</h1>
+            </div>
+
+
+
+            <!-- Frog + speech bubble group -->
+            <div class="hero-frog-group">
+                <img id="hero-speech-bubble" src="why not study.png" alt="Why not study abroad?">
+                <img id="hero-frog" src="new/frog-last-frame.png" alt="Frog on Paper Airplane">
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        (function () {
+            const video = document.getElementById('logo-video');
+            const nameReveal = document.getElementById('name-reveal');
+            const preloader = document.getElementById('preloader');
+            const flyingFrog = document.getElementById('flying-frog');
+            const heroFrog = document.getElementById('hero-frog');
+            const videoWrap = document.querySelector('.video-wrap');
+            const frogTopDecor = document.getElementById('frog-top-decor');
+
+            let revealed = false;
+            let playStarted = false;
+
+            // ---- Reveal the company name & start frog transition ----
+            function revealName() {
+                if (revealed) return;
+                revealed = true;
+                console.log('[Preloader] Revealing company name');
+
+                // Pause video on last frame
+                try { video.pause(); } catch (e) { }
+
+                // Trigger the horizontal clip-path reveal
+                nameReveal.classList.add('show');
+                frogTopDecor.classList.add('show');
+
+                // After reveal animation + hold, begin the frog fly transition
+                setTimeout(() => {
+                    startFrogTransition();
+                }, 2700); // 1.2s reveal + 1.5s hold
+            }
+
+            // ---- FLIP-style frog transition from preloader to hero ----
+            function startFrogTransition() {
+                console.log('[Preloader] Starting frog fly transition');
+
+                // 1. Get the video element's current position (the frog's "start" position)
+                const videoRect = videoWrap.getBoundingClientRect();
+
+                // 2. Position the flying frog exactly where the video is
+                flyingFrog.style.display = 'block';
+                flyingFrog.style.top = videoRect.top + 'px';
+                flyingFrog.style.left = videoRect.left + 'px';
+                flyingFrog.style.width = videoRect.width + 'px';
+
+                // 3. Hide the video (the flying frog now visually replaces it)
+                video.style.visibility = 'hidden';
+
+                // 4. Fade out the preloader background + name (but not the flying frog)
+                preloader.classList.add('hidden');
+                document.body.classList.add('content-loaded');
+
+                // 5. After a tiny delay (for the flying frog to render), animate to hero position
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        // Get the hero frog's target position
+                        const heroRect = heroFrog.getBoundingClientRect();
+
+                        // Add transition class and move to target
+                        flyingFrog.classList.add('animate-to-hero');
+                        flyingFrog.style.top = heroRect.top + 'px';
+                        flyingFrog.style.left = heroRect.left + 'px';
+                        flyingFrog.style.width = heroRect.width + 'px';
+                    });
+                });
+
+                // 6. When transition ends, show the real hero frog and hide the flying one
+                flyingFrog.addEventListener('transitionend', function onEnd(e) {
+                    if (e.propertyName !== 'top') return;
+                    flyingFrog.removeEventListener('transitionend', onEnd);
+
+                    heroFrog.classList.add('visible');
+                    document.getElementById('hero-speech-bubble').classList.add('visible');
+                    flyingFrog.style.display = 'none';
+
+                    console.log('[Preloader] Frog landed in hero!');
+
+                    // Clean up preloader DOM
+                    setTimeout(() => {
+                        preloader.style.display = 'none';
+                    }, 200);
+                });
+            }
+
+            // ---- Try to play the video ----
+            function attemptPlay() {
+                if (playStarted) return;
+                playStarted = true;
+
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('[Preloader] Video playing');
+                    }).catch(err => {
+                        console.warn('[Preloader] Play blocked:', err.message);
+                        setTimeout(revealName, 500);
+                    });
+                }
+            }
+
+            // ---- Events ----
+
+            // When video can play through
+            video.addEventListener('canplaythrough', () => {
+                console.log('[Preloader] canplaythrough');
+                attemptPlay();
+            });
+
+            video.addEventListener('canplay', () => {
+                console.log('[Preloader] canplay');
+                attemptPlay();
+            });
+
+            // When video finishes → trigger the name reveal
+            video.addEventListener('ended', () => {
+                console.log('[Preloader] Video ended');
+                revealName();
+            });
+
+            // If video errors out entirely
+            video.addEventListener('error', () => {
+                console.warn('[Preloader] Video error');
+                setTimeout(revealName, 800);
+            });
+
+            // Source-level errors
+            video.querySelectorAll('source').forEach(src => {
+                src.addEventListener('error', () => {
+                    const allFailed = Array.from(video.querySelectorAll('source'))
+                        .every(s => s.error || video.networkState === 3);
+                    if (allFailed) {
+                        console.warn('[Preloader] All video sources failed');
+                        setTimeout(revealName, 800);
+                    }
+                });
+            });
+
+            // Safety timeout
+            setTimeout(() => {
+                if (!revealed) {
+                    console.warn('[Preloader] Safety timeout at 12s');
+                    revealName();
+                }
+            }, 12000);
+
+            // Kick off
+            if (video.readyState >= 3) {
+                attemptPlay();
+            } else {
+                video.load();
+            }
+        })();
+    </script>
+</body>
+
+</html>
